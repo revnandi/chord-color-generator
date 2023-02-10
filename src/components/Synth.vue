@@ -1,19 +1,40 @@
 <script setup lang="ts">
-  import { ref, reactive, onMounted, onBeforeUnmount, defineEmits } from 'vue';
-  import * as Tone from 'tone';
-  import { mapRange } from '../utils';
+  import { debounce } from 'lodash';
+import type { ToneOscillatorType } from 'tone';
+import * as Tone from 'tone';
+import { onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
+import { mapRange } from '../utils';
 
-  const emit = defineEmits([
-    'colorSeedGenerated'
-  ]);
+  // interfaces
+  interface IProps {
+    settings: {
+      waveform: ToneOscillatorType
+    }
+  };
 
-  interface Note {
+  interface INote {
     name: string,
     freq: number
   };
 
+  interface IState {
+    activeKeys: string[],
+    synthOptions: {
+        polyphony: number,
+      }
+  };
+
+  const props = defineProps<IProps>();
+
+  //props
+  const emit = defineEmits([
+    'colorSeedGenerated',
+    'reset'
+  ]);
+
+  // data
   const notes: {
-    [key: string]: Note;
+    [key: string]: INote;
     } = {
       z: {
         name: 'A2',
@@ -121,6 +142,7 @@
       },
   };
 
+  // state
   const validKeys = [ 
     'q',
     'w',
@@ -150,40 +172,71 @@
     'm'
   ];
 
-  const state = reactive(
+  const state: IState = reactive(
     {
-      activeKeys: []
+      activeKeys: [],
+      synthOptions: {
+        polyphony: 3,
+      }
     }
   );
 
+  // @ts-ignore
   const row1: ref<NodeList | null> = ref(null);
+  // @ts-ignore
   const row2: ref<NodeList | null> = ref(null);
+  // @ts-ignore
   const row3: ref<NodeList | null> = ref(null);
+  // @ts-ignore
   const keys: ref<[NodeList]> = ref([])
   
+  // @ts-ignore
   const synth = new Tone.PolySynth({
-    maxPolyphony: 4,
+    maxPolyphony: state.synthOptions.polyphony,
+    volume: -6,
     options: {
       oscillator: {
-        type: 'triangle3'
+        type: props.settings.waveform
       }
     }
   }).toDestination();
 
+  synth.set({
+    envelope: {
+      attack: 0.1,
+      decay: 0.2,
+      sustain: 0.5,
+      release: 0.8,
+    }
+  });
+
   const handleKeyPress = (event: KeyboardEvent) => {
-    if(state.activeKeys.length >= 3) return;
-    if(state.activeKeys.includes(event.key)) return;
     if(!validKeys.includes(event.key)) return;
+    handleInput(event.key);
+  };
 
-    if(state.activeKeys.length >= 3) state.activeKeys.shift();
-    state.activeKeys.push(event.key);
+  const handleKeyClick = (event: MouseEvent) => {
+    const input = event.target as HTMLElement;
+    const key = input.innerText.toLowerCase();
+    handleInput(key);
+  };
 
-    const keyElement = keys.value[0].find((element: HTMLDivElement) => element.classList.contains(`key-${event.key}`));
-    keyElement.classList.add('active');
+  const handleInput = (key: string) => {
+    // validate key input
+    if(state.activeKeys.includes(key) || state.activeKeys.length >= state.synthOptions.polyphony) return;
+
+    // if number of active keys reaches max polyphony remove first item of a active keys
+    // if(state.activeKeys.length >= state.synthOptions.polyphony) state.activeKeys.shift();
+
+    state.activeKeys.push(key);
+
+    const keyElement = keys.value[0].find((element: HTMLDivElement) => element.classList.contains(`key-${key}`));
+    keyElement.classList.add(`active`);
+    keyElement.classList.add(`active-${state.activeKeys.length}`);
     
-    synth.triggerAttackRelease(notes[event.key].name, 0.5);
+    synth.triggerAttackRelease(notes[key].name, 0.35);
 
-    if(state.activeKeys.length === 3) {
+    if(state.activeKeys.length === state.synthOptions.polyphony) {
       const color1 = Math.round(mapRange(
         notes[state.activeKeys[0]].freq,
         notes['z'].freq,
@@ -208,12 +261,70 @@
 
       const generatedColor = `rgb(${color1}, ${color2}, ${color3})`;
 
-      emit('colorSeedGenerated', generatedColor);
-    }
+
+      setTimeout(() => {
+        synth.triggerAttackRelease(
+          [
+            notes[state.activeKeys[0]].name,
+            notes[state.activeKeys[1]].name,
+            notes[state.activeKeys[2]].name,
+          ],
+          1.15
+        );
+
+        emit('colorSeedGenerated', generatedColor);
+      }, 1250);
+
+    };
   };
 
+  const resetSynth = () => {
+    keys.value[0].forEach((element: HTMLElement) => {
+      element.classList.remove('active');
+      element.classList.remove('active-1');
+      element.classList.remove('active-2');
+      element.classList.remove('active-3');
+    });
+
+    state.activeKeys = [];
+
+    emit('reset');
+
+    // var myHeaders = new Headers();
+    // myHeaders.append("Content-Type", "application/json");
+
+
+    // fetch(`https://getpantry.cloud/apiv1/pantry/7414ee56-4f3a-4ab2-bb57-69e36e0362b1/basket/colors?body=${JSON.stringify({message: "testt"})}`)
+    // .then(response => response.text())
+    // .then(result => console.log(result))
+    // .catch(error => console.log('error', error));
+
+    // var myHeaders = new Headers();
+    // myHeaders.append("Content-Type", "application/json");
+
+    // var raw = JSON.stringify();
+
+    // var requestOptions = {
+    //   method: 'POST',
+    //   headers: myHeaders,
+    //   body: raw,
+    //   redirect: 'follow'
+    // };
+
+    // fetch("https://getpantry.cloud/apiv1/pantry/7414ee56-4f3a-4ab2-bb57-69e36e0362b1/basket/colors", requestOptions)
+    //   .then(response => response.text())
+    //   .then(result => console.log(result))
+    //   .catch(error => console.log('error', error));
+  };
+
+  // watchers
+  watch(state.activeKeys, async (newQuestion, oldQuestion) => {
+
+  })
+
+  // lifecycle
   onMounted(() => {
-    window.addEventListener('keydown', (event) => handleKeyPress(event));
+    window.addEventListener('keydown', debounce(event => handleKeyPress(event), 80));
 
     keys.value.push(
       [...row1.value?.querySelectorAll('.key'),
@@ -224,7 +335,7 @@
   }),
   onBeforeUnmount(() => {
     console.log('unmounting')
-      window.removeEventListener('keydown', (event) => handleKeyPress(event));
+      window.removeEventListener('keydown', debounce(event => handleKeyPress(event), 80));
   });
 </script>
 
@@ -236,41 +347,56 @@
       <div class="active-key">{{ notes[state.activeKeys[2]] && notes[state.activeKeys[2]].name }}</div>
     </div>
     <div ref="row1" class="row">
-      <div class="key key-q">Q</div>
-      <div class="key key-w">W</div>
-      <div class="key key-e">E</div>
-      <div class="key key-r">R</div>
-      <div class="key key-t">T</div>
-      <div class="key key-z">Z</div>
-      <div class="key key-u">U</div>
-      <div class="key key-i">I</div>
-      <div class="key key-o">O</div>
-      <div class="key key-p">P</div>
+      <div class="key key-q" @click="(event) => handleKeyClick(event)">Q</div>
+      <div class="key key-w" @click="(event) => handleKeyClick(event)">W</div>
+      <div class="key key-e" @click="(event) => handleKeyClick(event)">E</div>
+      <div class="key key-r" @click="(event) => handleKeyClick(event)">R</div>
+      <div class="key key-t" @click="(event) => handleKeyClick(event)">T</div>
+      <div class="key key-z" @click="(event) => handleKeyClick(event)">Z</div>
+      <div class="key key-u" @click="(event) => handleKeyClick(event)">U</div>
+      <div class="key key-i" @click="(event) => handleKeyClick(event)">I</div>
+      <div class="key key-o" @click="(event) => handleKeyClick(event)">O</div>
+      <div class="key key-p" @click="(event) => handleKeyClick(event)">P</div>
     </div>
     <div ref="row2" class="row">
-      <div class="key key-a">A</div>
-      <div class="key key-s">S</div>
-      <div class="key key-d">D</div>
-      <div class="key key-f">F</div>
-      <div class="key key-g">G</div>
-      <div class="key key-h">H</div>
-      <div class="key key-j">J</div>
-      <div class="key key-k">K</div>
-      <div class="key key-l">L</div>
+      <div class="key key-a" @click="(event) => handleKeyClick(event)">A</div>
+      <div class="key key-s" @click="(event) => handleKeyClick(event)">S</div>
+      <div class="key key-d" @click="(event) => handleKeyClick(event)">D</div>
+      <div class="key key-f" @click="(event) => handleKeyClick(event)">F</div>
+      <div class="key key-g" @click="(event) => handleKeyClick(event)">G</div>
+      <div class="key key-h" @click="(event) => handleKeyClick(event)">H</div>
+      <div class="key key-j" @click="(event) => handleKeyClick(event)">J</div>
+      <div class="key key-k" @click="(event) => handleKeyClick(event)">K</div>
+      <div class="key key-l" @click="(event) => handleKeyClick(event)">L</div>
     </div>
     <div ref="row3" class="row">
-      <div class="key key-y">Y</div>
-      <div class="key key-x">X</div>
-      <div class="key key-c">C</div>
-      <div class="key key-v">V</div>
-      <div class="key key-b">B</div>
-      <div class="key key-n">N</div>
-      <div class="key key-m">M</div>
+      <div class="key key-y" @click="(event) => handleKeyClick(event)">Y</div>
+      <div class="key key-x" @click="(event) => handleKeyClick(event)">X</div>
+      <div class="key key-c" @click="(event) => handleKeyClick(event)">C</div>
+      <div class="key key-v" @click="(event) => handleKeyClick(event)">V</div>
+      <div class="key key-b" @click="(event) => handleKeyClick(event)">B</div>
+      <div class="key key-n" @click="(event) => handleKeyClick(event)">N</div>
+      <div class="key key-m" @click="(event) => handleKeyClick(event)">M</div>
     </div>
+    <button>
+      <svg width="1rem" height="auto" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="var(--color-main)">
+        <path d="M6.906 4.537A.6.6 0 006 5.053v13.894a.6.6 0 00.906.516l11.723-6.947a.6.6 0 000-1.032L6.906 4.537z" stroke="var(--color-main)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+      </svg>
+      Play again</button>
+    <button @click="resetSynth()">
+      <svg width="1rem" height="1rem" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="var(--color-main)">
+        <path d="M21.168 8A10.003 10.003 0 0012 2C6.815 2 2.55 5.947 2.05 11" stroke="var(--color-main)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M17 8h4.4a.6.6 0 00.6-.6V3M2.881 16c1.544 3.532 5.068 6 9.168 6 5.186 0 9.45-3.947 9.951-9" stroke="var(--color-main)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M7.05 16h-4.4a.6.6 0 00-.6.6V21" stroke="var(--color-main)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+      </svg>
+      Reset
+    </button>
   </div>
 </template>
 
 <style scoped>
+  .keyboard {
+    text-align: center;
+  }
   .row {
     display: flex;
     flex-wrap: nowrap;
@@ -288,7 +414,14 @@
     height: 4rem;
     font-size: 2rem;
     color: var(--color-main);
-    transition: color 0.3s var(--ease-in-out), background-color 0.3s var(--ease-in-out), border-color 0.3s var(--ease-in-out);
+    cursor: pointer;
+    transition: color 0.3s var(--ease-in-out), background-color 0.3s var(--ease-in-out), border-color 0.3s var(--ease-in-out), opacity 0.3s var(--ease-in-out);
+  }
+
+  .key:hover {
+    border-color: var(--color-alt);
+    background-color: var(--color-main);
+    color: var(--color-alt);
   }
 
   .key + * {
@@ -296,9 +429,35 @@
   }
 
   .key.active {
+    position: relative;
     border-color: var(--color-alt);
     background-color: var(--color-main);
     color: var(--color-alt);
+  }
+
+  .key::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0.25em;
+    font-size: 0.5em;
+    opacity: 0;
+  }
+
+  .key.active::after {
+    opacity: 1;
+  }
+
+  .key.active-1::after {
+    content: '1'
+  }
+
+  .key.active-2::after {
+    content: '2'
+  }
+
+  .key.active-3::after {
+    content: '3'
   }
 
   .active-key-grid {
@@ -318,7 +477,13 @@
     padding: 0;
     margin: 0;
     list-style: none;
-    border: 1px solid var(--color-alt);
+    border-bottom: 1px solid var(--color-main);
+    color: var(--color-main);
     font-size: inherit;
+    transition: color 0.3s var(--ease-in-out), background-color 0.3s var(--ease-in-out), border-color 0.3s var(--ease-in-out);
+  }
+
+  .active-key + * {
+    margin-left: 0.25rem;
   }
 </style>

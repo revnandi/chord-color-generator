@@ -60,6 +60,7 @@ button {
   position: relative;
   display: flex;
   align-items: center;
+  gap: .25rem;
   padding: 0.6em 1.2em;
   border: 1px solid;
   border-color: var(--color-main);
@@ -68,7 +69,6 @@ button {
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  /* background-color: #1a1a1a; */
   cursor: pointer;
   transition: border 0.25s;
   transition: background-color 0.3s var(--ease-in-out), color 0.3s var(--ease-in-out);
@@ -81,6 +81,32 @@ button:hover {
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
+}
+
+button svg {
+  vertical-align: -0.125em;
+}
+
+label {
+  margin-bottom: 0.5rem;
+  color: var(--color-main);
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  transition: background-color 0.3s var(--ease-in-out), color 0.3s var(--ease-in-out);
+}
+
+select {
+  min-height: 2.625rem;
+  padding: 0.6em 1.2em;
+  appearance: none;
+  border-color: var(--color-main);
+  background-color: transparent;
+  color: var(--color-main);
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  transition: background-color 0.3s var(--ease-in-out), color 0.3s var(--ease-in-out);
 }
 
 input {
