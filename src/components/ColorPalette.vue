@@ -1,17 +1,33 @@
 <script setup lang="ts">
+import { reactive, computed } from 'vue';
 import Spinner from './Spinner.vue';
 import { IColorPalette } from '../types/color-api';
 
+// interfaces
 interface IProps {
   colorPalette?: IColorPalette
 };
 
+// interface IState {
+//   isLoading: boolean
+// }
+
+// props
 const props = defineProps<IProps>();
+
+// // state
+// const state: IState = reactive({
+//   isLoading: false
+// });
+
+// // computed
+// const showSpinner = computed(() =>  state.isLoading && )
+
 </script>
 
 <template>
   <div class="color-palette-container">
-    <!-- <Spinner v-if="!props.colorPalette"/> -->
+    <Spinner v-if="!props.colorPalette"/>
     <ul v-if="props.colorPalette" class="color-palette-list">
       <li v-for="item in props.colorPalette.colors" class="color-palette-item" :style="`background-color: ${item.hex.value};`">
         <h2 class="color-name">{{ item.name.value }}</h2>
@@ -24,7 +40,7 @@ const props = defineProps<IProps>();
   .color-palette-container {
     display: flex;
     justify-content: center;
-    min-height: 6.25rem;
+    min-height: 6.5rem;
     margin: 2rem 0;
   }
 

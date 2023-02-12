@@ -6,7 +6,7 @@
   import RangeSlider from './components/RangeSlider.vue';
   import Synth from './components/Synth.vue' ;
   import { ref, reactive } from 'vue';
-  import  { IColorPalette, ColorMode } from './types/color-api';
+  import  { IColor, IColorPalette, ColorMode } from './types/color-api';
   import type { ToneOscillatorType } from 'tone';
 
   // dark mode
@@ -16,7 +16,8 @@
   // interfaces
   interface IState {
     currentView: string,
-    colorPalette?: IColorPalette
+    colorPalette?: IColorPalette,
+    seed?: IColor,
     settings: {
       color: {
         mode: ColorMode
@@ -39,7 +40,7 @@
           mode: 'complement'
         },
         synth: {
-          waveform: 'triangle',
+          waveform: 'triangle3',
           volume: -6,
         }
       },
@@ -191,6 +192,7 @@
             <h1>Keyboard</h1>
           </HiddenTitle>
           <ColorPalette :color-palette="state.colorPalette"/>
+          <ColorSeed :seed="state.seed"/>
           <Synth
             @color-seed-generated="handleColorSeedGenerated"
             @reset="resetApp"

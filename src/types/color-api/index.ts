@@ -1,6 +1,6 @@
 export type ColorMode = 'monochrome' | 'monochrome-dark' | 'monochrome-light' | 'analogic' | 'complement' | 'analogic-complement' | 'triad' | 'quad';
 
-export interface IColor {
+export type XYZColor = {
   XYZ: {
     X: number,
     Y: number,
@@ -12,6 +12,9 @@ export interface IColor {
     },
     value: string,
   },
+};
+
+export type CMYKColor = {
   cmyk: {
     c: number,
     k: number,
@@ -24,7 +27,24 @@ export interface IColor {
       y: number
     },
     value: string
-  },
+  }
+};
+
+export type ColorName = {
+  closest_named_hex: string
+  distance: number,
+  exact_match_name: boolean,
+  value: string,
+}
+
+export type ColorImage = {
+  bare: string,
+  name: string
+}
+
+export interface IColor {
+  XYZ: XYZColor,
+  cmyk: CMYKColor,
   contrast: {
     value: string
   },
@@ -65,25 +85,14 @@ export interface IColor {
     b: number,
     value: string
   },
-  image: {
-    bare: string,
-    name: string
-  },
-  name: {
-    closest_named_hex: string
-    distance: number,
-    exact_match_name: boolean,
-    value: string,
-  }
+  image: ColorImage,
+  name: ColorName
 }
 
 export interface IColorPalette {
   colors: IColor[],
   count: number,
-  image: {
-    bare: string,
-    named: string
-  },
-  mode: string,
+  image: ColorImage,
+  mode: ColorMode,
   seed: IColor
 };
