@@ -1,7 +1,9 @@
 <script setup lang="ts">
-  import { useDark, useToggle } from "@vueuse/core";
+  import { useDark, useToggle } from '@vueuse/core';
   import ColorPalette from './components/ColorPalette.vue' ;
-  import HiddenTitle from "./components/HiddenTitle.vue";
+  import ColorPaletteList from './components/ColorPaletteList.vue' ;
+  import HiddenTitle from './components/HiddenTitle.vue';
+  import RangeSlider from './components/RangeSlider.vue';
   import Synth from './components/Synth.vue' ;
   import { ref, reactive } from 'vue';
   import  { IColorPalette, ColorMode } from './types/color-api';
@@ -21,22 +23,27 @@
       },
       synth: {
         waveform: ToneOscillatorType,
+        volume: number
       }
-    }
+    },
+    savedPalettes: IColorPalette[]
   };
 
   // data/state
   const state: IState = reactive(
     {
       currentView: 'hello',
+      colorPalette: undefined,
       settings: {
         color: {
           mode: 'complement'
         },
         synth: {
-          waveform: 'triangle'
+          waveform: 'triangle',
+          volume: -6,
         }
-      }
+      },
+      savedPalettes: []
     }
   );
 
@@ -65,6 +72,8 @@
   const savePaletteToCloud = () => {
     if(!state.colorPalette) return;
 
+    state.savedPalettes.push(state.colorPalette);
+
     // const imageUrlData = new FormData();
     // imageUrlData.append('url', state.colorPalette.image.named);
 
@@ -85,7 +94,7 @@
     const myHeaders = new Headers();
     myHeaders.append('Content-Type', 'application/json');
 
-    const raw = JSON.stringify(state.colorPalette);
+    const raw = JSON.stringify(Object.assign({}, state.savedPalettes));
 
     const requestOptions = {
       method: 'POST',
@@ -99,16 +108,23 @@
       .catch(error => console.log('error', error));
   };
 
+  const loadPalettesFromLCoud = () => {
+    fetch('https://getpantry.cloud/apiv1/pantry/7414ee56-4f3a-4ab2-bb57-69e36e0362b1/basket/colors')
+      .then(response => response.text())
+      .then(result => 
+        state.savedPalettes = Object.values(JSON.parse(result))
+      )
+      .catch(error => console.log('error', error));
+  };
+
   const changeView = (viewSlug: string) => {
     state.currentView = viewSlug;
   };
 
   const resetApp = () => {
-    const styleRoot: HTMLElement = document.querySelector(':root')!;
+    // const styleRoot: HTMLElement = document.querySelector(':root')!;
 
-    console.log(isDark.value);
-
-    styleRoot.style.setProperty('--color-alt', isDark ? '#fff' : '#000');
+    // styleRoot.style.setProperty(isDark ? '--color-main' :, isDark ? '#fff' : '#000');
 
     state.colorPalette = undefined;
   };
@@ -124,7 +140,7 @@
       <h1>Chord Color Palettes</h1>
     </HiddenTitle>
     <div class="toolbar">
-      <button @click="changeView(state.currentView === 'setting' ? 'synth' : 'settings')" aria-label="settings">
+      <button @click="changeView('palettes')" aria-label="color palettes">
         <svg class="icon" width="1.5rem" height="1.5rem" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="var(--color-main)">
           <path d="M20.51 9.54a1.899 1.899 0 01-1 1.09A7 7 0 0015.37 17c.001.47.048.939.14 1.4a2.16 2.16 0 01-.31 1.65 1.79 1.79 0 01-1.21.8 9 9 0 01-10.62-9.13A9.05 9.05 0 0111.85 3h.51a9 9 0 018.06 5 2 2 0 01.09 1.52v.02z" stroke="var(--color-main)" stroke-width="1.5"></path>
           <path d="M8 16.01l.01-.011M6 12.01l.01-.011M8 8.01l.01-.011M12 6.01l.01-.011M16 8.01l.01-.011" stroke="var(--color-main)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
@@ -139,6 +155,7 @@
         Settings
       </button>
     </div>
+
     <Transition>
       <section v-if="state.currentView === 'hello'" class="view">
         <HiddenTitle>
@@ -151,13 +168,28 @@
         </div>
       </section>
     </Transition>
+
+    <Transition>
+      <section v-if="state.currentView === 'palettes'" class="view">
+        <HiddenTitle>
+          <h1>Saved Palettes</h1>
+        </HiddenTitle>
+        <div class="wrapper">
+          <div>
+            <button @click="loadPalettesFromLCoud">Load from Cloud</button>
+            <ColorPaletteList :palettes="state.savedPalettes"/>
+          </div>
+        </div>
+      </section>
+    </Transition>
+
     <Transition name="slide">
       <section v-if="state.currentView === 'synth'" class="view">
         <div class="wrapper column">
+          <button @click="savePaletteToCloud()">Save Palette</button>
           <HiddenTitle>
             <h1>Keyboard</h1>
           </HiddenTitle>
-          <!-- <button @click="savePaletteToCloud()">save image</button> -->
           <ColorPalette :color-palette="state.colorPalette"/>
           <Synth
             @color-seed-generated="handleColorSeedGenerated"
@@ -167,6 +199,7 @@
         </div>
       </section>
     </Transition>
+
     <Transition name="slide">
       <section v-if="state.currentView === 'settings'" class="view">
         <HiddenTitle>
@@ -325,6 +358,9 @@
                   <option value="sawtooth32">sawtooth32</option>
                 </select>
               </div>
+              <div class="settings-field">
+                <RangeSlider :min="-100" :max="0" :model-value="state.settings.synth.volume"/>
+              </div>
               <div class="dark-mode-switch-container">
                 <svg class="icon" width="2rem" height="2rem" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M3 11.507a9.493 9.493 0 0018 4.219c-8.507 0-12.726-4.22-12.726-12.726A9.494 9.494 0 003 11.507z" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
@@ -338,12 +374,12 @@
                 </svg>
               </div>
             </div>
-            <input type="text">
             <button @click="changeView('synth')">Back</button>
           </div>
         </div>
       </section>
     </Transition>
+
   </div>
 </template>
 
@@ -393,7 +429,7 @@
   .settings-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
+    gap: 2rem 3rem;
   }
 
   .settings-field {
@@ -402,49 +438,5 @@
 
   .settings-field label {
 
-  }
-
-  .slide-enter-active,
-  .slide-leave-active {
-    transition: top 0.75s var(--ease-in-out), opacity 1s var(--ease-in-out);
-  }
-
-  .slide-enter-to {
-    position: absolute;
-    top: 0;
-    left: 0;
-    opacity: 1;
-  }
-
-  .slide-enter-from {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    opacity: 0;
-  }
-
-  .slide-leave-to {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    opacity: 0;
-  }
-
-  .slide-leave-from {
-    position: absolute;
-    top: 0;
-    left: 0;
-    opacity: 1;
-  }
-
-
-  .v-enter-active,
-  .v-leave-active {
-    transition: opacity 0.5s ease;
-  }
-
-  .v-enter-from,
-  .v-leave-to {
-    opacity: 0;
   }
 </style>

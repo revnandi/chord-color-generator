@@ -11,7 +11,7 @@ const props = defineProps<IProps>();
 
 <template>
   <div class="color-palette-container">
-    <Spinner v-if="!props.colorPalette"/>
+    <!-- <Spinner v-if="!props.colorPalette"/> -->
     <ul v-if="props.colorPalette" class="color-palette-list">
       <li v-for="item in props.colorPalette.colors" class="color-palette-item" :style="`background-color: ${item.hex.value};`">
         <h2 class="color-name">{{ item.name.value }}</h2>

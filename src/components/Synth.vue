@@ -2,13 +2,14 @@
   import { debounce } from 'lodash';
 import type { ToneOscillatorType } from 'tone';
 import * as Tone from 'tone';
-import { onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
+import { onBeforeUnmount, onMounted, reactive, computed, ref, watch } from 'vue';
 import { mapRange } from '../utils';
 
   // interfaces
   interface IProps {
     settings: {
-      waveform: ToneOscillatorType
+      waveform: ToneOscillatorType,
+      volume: number
     }
   };
 
@@ -36,7 +37,7 @@ import { mapRange } from '../utils';
   const notes: {
     [key: string]: INote;
     } = {
-      z: {
+      y: {
         name: 'A2',
         freq: 110.00,
       },
@@ -120,7 +121,7 @@ import { mapRange } from '../utils';
         name: 'G5',
         freq: 783.99
       },
-      y: {
+      z: {
         name: 'A5',
         freq: 880.00
       },
@@ -176,10 +177,43 @@ import { mapRange } from '../utils';
     {
       activeKeys: [],
       synthOptions: {
-        polyphony: 3,
+        polyphony: 3
       }
     }
   );
+
+  // computed
+  const polyPhonyLimitReached = computed(() =>  (state.activeKeys.length >= state.synthOptions.polyphony))
+
+  const colorRValue = computed(() => {
+    return state.activeKeys[0] ? Math.round(mapRange(
+      notes[state.activeKeys[0]].freq,
+      notes['y'].freq,
+      notes['p'].freq,
+      0,
+      255
+    )) : null;
+  });
+
+  const colorGValue = computed(() => {
+    return state.activeKeys[1] ? Math.round(mapRange(
+      notes[state.activeKeys[1]].freq,
+      notes['y'].freq,
+      notes['p'].freq,
+      0,
+      255
+    )) : null;
+  });
+
+  const colorBValue = computed(() => {
+    return state.activeKeys[2] ? Math.round(mapRange(
+      notes[state.activeKeys[2]].freq,
+      notes['y'].freq,
+      notes['p'].freq,
+      0,
+      255
+    )) : null;
+  });
 
   // @ts-ignore
   const row1: ref<NodeList | null> = ref(null);
@@ -193,7 +227,7 @@ import { mapRange } from '../utils';
   // @ts-ignore
   const synth = new Tone.PolySynth({
     maxPolyphony: state.synthOptions.polyphony,
-    volume: -6,
+    volume: props.settings.volume,
     options: {
       oscillator: {
         type: props.settings.waveform
@@ -223,10 +257,7 @@ import { mapRange } from '../utils';
 
   const handleInput = (key: string) => {
     // validate key input
-    if(state.activeKeys.includes(key) || state.activeKeys.length >= state.synthOptions.polyphony) return;
-
-    // if number of active keys reaches max polyphony remove first item of a active keys
-    // if(state.activeKeys.length >= state.synthOptions.polyphony) state.activeKeys.shift();
+    if(state.activeKeys.includes(key) || polyPhonyLimitReached.value) return;
 
     state.activeKeys.push(key);
 
@@ -237,30 +268,8 @@ import { mapRange } from '../utils';
     synth.triggerAttackRelease(notes[key].name, 0.35);
 
     if(state.activeKeys.length === state.synthOptions.polyphony) {
-      const color1 = Math.round(mapRange(
-        notes[state.activeKeys[0]].freq,
-        notes['z'].freq,
-        notes['p'].freq,
-        0,
-        255
-      ));
-      const color2 = Math.round(mapRange(
-        notes[state.activeKeys[1]].freq,
-        notes['z'].freq,
-        notes['p'].freq,
-        0,
-        255
-      ));
-      const color3 = Math.round(mapRange(
-        notes[state.activeKeys[2]].freq,
-        notes['z'].freq,
-        notes['p'].freq,
-        0,
-        255
-      ));
 
-      const generatedColor = `rgb(${color1}, ${color2}, ${color3})`;
-
+      const generatedColor = `rgb(${colorRValue.value}, ${colorGValue.value}, ${colorBValue.value})`;
 
       setTimeout(() => {
         synth.triggerAttackRelease(
@@ -289,32 +298,6 @@ import { mapRange } from '../utils';
     state.activeKeys = [];
 
     emit('reset');
-
-    // var myHeaders = new Headers();
-    // myHeaders.append("Content-Type", "application/json");
-
-
-    // fetch(`https://getpantry.cloud/apiv1/pantry/7414ee56-4f3a-4ab2-bb57-69e36e0362b1/basket/colors?body=${JSON.stringify({message: "testt"})}`)
-    // .then(response => response.text())
-    // .then(result => console.log(result))
-    // .catch(error => console.log('error', error));
-
-    // var myHeaders = new Headers();
-    // myHeaders.append("Content-Type", "application/json");
-
-    // var raw = JSON.stringify();
-
-    // var requestOptions = {
-    //   method: 'POST',
-    //   headers: myHeaders,
-    //   body: raw,
-    //   redirect: 'follow'
-    // };
-
-    // fetch("https://getpantry.cloud/apiv1/pantry/7414ee56-4f3a-4ab2-bb57-69e36e0362b1/basket/colors", requestOptions)
-    //   .then(response => response.text())
-    //   .then(result => console.log(result))
-    //   .catch(error => console.log('error', error));
   };
 
   // watchers
@@ -342,9 +325,9 @@ import { mapRange } from '../utils';
 <template>
   <div class="keyboard">
     <div class="active-key-grid">
-      <div class="active-key">{{ notes[state.activeKeys[0]] && notes[state.activeKeys[0]].name }}</div>
-      <div class="active-key">{{ notes[state.activeKeys[1]] && notes[state.activeKeys[1]].name }}</div>
-      <div class="active-key">{{ notes[state.activeKeys[2]] && notes[state.activeKeys[2]].name }}</div>
+      <div class="active-key" :data-number="colorRValue">{{ notes[state.activeKeys[0]] && notes[state.activeKeys[0]].name }}</div>
+      <div class="active-key" :data-number="colorGValue">{{ notes[state.activeKeys[1]] && notes[state.activeKeys[1]].name }}</div>
+      <div class="active-key" :data-number="colorBValue">{{ notes[state.activeKeys[2]] && notes[state.activeKeys[2]].name }}</div>
     </div>
     <div ref="row1" class="row">
       <div class="key key-q" @click="(event) => handleKeyClick(event)">Q</div>
@@ -378,18 +361,24 @@ import { mapRange } from '../utils';
       <div class="key key-n" @click="(event) => handleKeyClick(event)">N</div>
       <div class="key key-m" @click="(event) => handleKeyClick(event)">M</div>
     </div>
-    <button>
-      <svg width="1rem" height="auto" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="var(--color-main)">
-        <path d="M6.906 4.537A.6.6 0 006 5.053v13.894a.6.6 0 00.906.516l11.723-6.947a.6.6 0 000-1.032L6.906 4.537z" stroke="var(--color-main)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-      </svg>
-      Play again</button>
-    <button @click="resetSynth()">
-      <svg width="1rem" height="1rem" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="var(--color-main)">
-        <path d="M21.168 8A10.003 10.003 0 0012 2C6.815 2 2.55 5.947 2.05 11" stroke="var(--color-main)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-        <path d="M17 8h4.4a.6.6 0 00.6-.6V3M2.881 16c1.544 3.532 5.068 6 9.168 6 5.186 0 9.45-3.947 9.951-9" stroke="var(--color-main)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M7.05 16h-4.4a.6.6 0 00-.6.6V21" stroke="var(--color-main)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-      </svg>
-      Reset
-    </button>
+    <div class="bottom-buttons">
+      <Transition>
+        <button v-if="polyPhonyLimitReached">
+          <svg width="1rem" height="1rem" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="var(--color-main)">
+            <path d="M6.906 4.537A.6.6 0 006 5.053v13.894a.6.6 0 00.906.516l11.723-6.947a.6.6 0 000-1.032L6.906 4.537z" stroke="var(--color-main)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+          </svg>
+        Play again</button>
+      </Transition>
+      <Transition>
+      <button v-if="polyPhonyLimitReached" @click="resetSynth()">
+        <svg width="1rem" height="1rem" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="var(--color-main)">
+          <path d="M21.168 8A10.003 10.003 0 0012 2C6.815 2 2.55 5.947 2.05 11" stroke="var(--color-main)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+          <path d="M17 8h4.4a.6.6 0 00.6-.6V3M2.881 16c1.544 3.532 5.068 6 9.168 6 5.186 0 9.45-3.947 9.951-9" stroke="var(--color-main)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M7.05 16h-4.4a.6.6 0 00-.6.6V21" stroke="var(--color-main)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+        </svg>
+        Reset
+      </button>
+    </Transition>
+    </div>
   </div>
 </template>
 
@@ -469,6 +458,7 @@ import { mapRange } from '../utils';
   }
 
   .active-key {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -483,7 +473,32 @@ import { mapRange } from '../utils';
     transition: color 0.3s var(--ease-in-out), background-color 0.3s var(--ease-in-out), border-color 0.3s var(--ease-in-out);
   }
 
+  .active-key::after {
+    position: absolute;
+    content: attr(data-number);
+    display: inline-block;
+    top: -2rem;
+    font-size: 1rem;
+    width: 2rem;
+    height: 2rem;
+    color: var(--coor-main);
+    z-index: 9;
+    opacity: 1;
+  }
+
   .active-key + * {
     margin-left: 0.25rem;
+  }
+
+  .bottom-buttons {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 2rem;
+    min-height: 4rem;
+  }
+
+  .bottom-buttons > * + * {
+    margin-left: .25rem;
   }
 </style>

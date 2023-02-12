@@ -185,6 +185,50 @@ input:checked + .slider:before {
   stroke: var(--color-main);
 }
 
+.slide-enter-active,
+.slide-leave-active {
+  transition: top 0.75s var(--ease-in-out), opacity 1s var(--ease-in-out);
+}
+
+.slide-enter-to {
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 1;
+}
+
+.slide-enter-from {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  opacity: 0;
+}
+
+.slide-leave-to {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  opacity: 0;
+}
+
+.slide-leave-from {
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 1;
+}
+
+
+.v-enter-active,
+.v-leave-active {
+  transition: opacity 0.5s ease;
+}
+
+.v-enter-from,
+.v-leave-to {
+  opacity: 0;
+}
+
 #app {
   max-width: 1280px;
   width: 100%;
