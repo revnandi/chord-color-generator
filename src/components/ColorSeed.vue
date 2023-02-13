@@ -26,10 +26,8 @@ import { store } from '../store';
     align-items: baseline;
   }
 
-  .title {
-    margin: 0 1rem 0 0;
-    font-size: 1rem;
-    font-weight: 500;
+  .code, .name {
+    color: var(--color-main);
   }
 
   .info {

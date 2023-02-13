@@ -10,6 +10,7 @@ import { mapRange } from '../utils';
 
   // interfaces
   interface IState {
+    keys: Element[]
     activeKeys: string[],
     synthOptions: {
         polyphony: number,
@@ -270,6 +271,7 @@ import { mapRange } from '../utils';
 
   const state: IState = reactive(
     {
+      keys: [],
       activeKeys: [],
       synthOptions: {
         polyphony: 3
@@ -316,8 +318,8 @@ import { mapRange } from '../utils';
   const row2: Ref<NodeList | null> = ref(null);
 
   const row3: Ref<NodeList | null> = ref(null);
-  // @ts-ignore
-  const keys: Ref<NodeList[]> = ref([])
+
+  // const keys: Ref<Element[]> = ref([])
   // @ts-ignore
   const synth = new Tone.PolySynth({
     maxPolyphony: state.synthOptions.polyphony,
@@ -367,12 +369,12 @@ import { mapRange } from '../utils';
 
     state.activeKeys.push(key);
 
-    console.log(keys.value[0])
-
-    const keyElement = keys.value[0].find((element: HTMLDivElement) => element.classList.contains(`key-${key}`));
-    keyElement.classList.add(`active`);
-    keyElement.classList.add(`active-${state.activeKeys.length}`);
+    // add active classes to clicked/pressed keys
+    const keyElement = state.keys.find(item => item.classList.contains(`key-${key}`));
+    keyElement?.classList.add(`active`);
+    keyElement?.classList.add(`active-${state.activeKeys.length}`);
     
+    // play single note
     synth.triggerAttackRelease(notes[store.settings.synth.notes][key].name, 0.35);
 
     if(state.activeKeys.length === state.synthOptions.polyphony) {
@@ -389,7 +391,8 @@ import { mapRange } from '../utils';
   };
 
   const resetSynth = () => {
-    keys.value[0].forEach((element: HTMLElement) => {
+
+   state.keys.forEach((element: Element) => {
       element.classList.remove('active');
       element.classList.remove('active-1');
       element.classList.remove('active-2');
@@ -405,15 +408,17 @@ import { mapRange } from '../utils';
   onMounted(() => {
     window.addEventListener('keydown', debounce(event => handleKeyPress(event), 80));
 
-    keys.value.push(
-      [...row1.value?.querySelectorAll('.key'),
+    state.keys =[
+      // @ts-ignore
+      ...row1.value?.querySelectorAll('.key'),
+      // @ts-ignore
       ...row2.value?.querySelectorAll('.key'),
+      // @ts-ignore
       ...row3.value?.querySelectorAll('.key')
-    ]);
+    ];
     
   }),
   onBeforeUnmount(() => {
-    console.log('unmounting')
       window.removeEventListener('keydown', debounce(event => handleKeyPress(event), 80));
   });
 </script>

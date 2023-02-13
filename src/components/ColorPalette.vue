@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { reactive, computed } from 'vue';
-import { IColorPalette } from '../types/color-api';
+import type { IColorPalette } from '../types/color-api';
 
 // interfaces
 interface IProps {

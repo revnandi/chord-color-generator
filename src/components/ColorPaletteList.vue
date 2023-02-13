@@ -37,10 +37,12 @@
   .notice {
     margin-top: 2rem;
     text-align: center;
+    color: var(--color-main);
   }
 
   .remove-button {
     align-self: center;
-    margin-left: 0.25rem;
+    margin-left: 1rem;
   }
+
 </style>
