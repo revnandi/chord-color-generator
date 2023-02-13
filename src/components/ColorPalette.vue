@@ -8,20 +8,8 @@ interface IProps {
   colorPalette?: IColorPalette
 };
 
-// interface IState {
-//   isLoading: boolean
-// }
-
 // props
 const props = defineProps<IProps>();
-
-// // state
-// const state: IState = reactive({
-//   isLoading: false
-// });
-
-// // computed
-// const showSpinner = computed(() =>  state.isLoading && )
 
 </script>
 
@@ -71,12 +59,14 @@ const props = defineProps<IProps>();
 
   .color-name {
     margin: 0;
+    color: var(--color-main);
     font-size: 0.75rem;
     text-align: center;
   }
 
   .color-code {
     margin: 0;
+    color: var(--color-main);
     font-size: 0.75rem;
     text-align: center; 
   }

@@ -229,7 +229,7 @@ input:checked + .slider:before {
   opacity: 0;
 }
 
-// toast plugin overwrites
+/* toast plugin overwrites */
 .Vue-Toastification__container {}
 
 .Vue-Toastification__toast--default {}

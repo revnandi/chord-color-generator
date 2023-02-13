@@ -23,6 +23,6 @@ const props = defineProps<IProps>();
   </div>
 </template>
 
-<style>
+<style scoped>
 
 </style>

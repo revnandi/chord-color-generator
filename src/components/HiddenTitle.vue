@@ -4,7 +4,7 @@
   </div>
 </template>
 
-<style>
+<style scoped>
   .hidden-title {
     position: absolute !important;
     height: 1px; width: 1px; 

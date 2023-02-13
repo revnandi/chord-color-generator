@@ -1,6 +1,8 @@
 <script setup lang="ts">
-  import { debounce } from 'lodash';
+import { store } from '../store';
+import { debounce } from 'lodash';
 import type { ToneOscillatorType } from 'tone';
+import type { Notes } from '../types/synth'
 import * as Tone from 'tone';
 import { onBeforeUnmount, onMounted, reactive, computed, ref, watch } from 'vue';
 import { mapRange } from '../utils';
@@ -11,11 +13,6 @@ import { mapRange } from '../utils';
       waveform: ToneOscillatorType,
       volume: number
     }
-  };
-
-  interface INote {
-    name: string,
-    freq: number
   };
 
   interface IState {
@@ -33,10 +30,114 @@ import { mapRange } from '../utils';
     'reset'
   ]);
 
-  // data
-  const notes: {
-    [key: string]: INote;
-    } = {
+  const notes: Notes = {
+    all: {
+      y: {
+        name: 'G3',
+        freq: 196.00,
+      },
+      x: {
+        name: 'G#3',
+        freq: 207.65
+      },
+      c: {
+        name: 'A3',
+        freq: 220.00	
+      },
+      v: {
+        name: 'A#3',
+        freq: 233.08
+      },
+      b: {
+        name: 'B3',
+        freq: 246.94
+      },
+      n: {
+        name: 'C4',
+        freq: 261.63
+      },
+      m: {
+        name: 'C#4',
+        freq: 277.18
+      },
+      a: {
+        name: 'D4',
+        freq: 293.66
+      },
+      s: {
+        name: 'D#4',
+        freq: 311.13
+      },
+      d: {
+        name: 'E4',
+        freq: 329.63
+      },
+      f: {
+        name: 'F4',
+        freq: 349.23
+      },
+      g: {
+        name: 'F#4',
+        freq: 369.99
+      },
+      h: {
+        name: 'G4',
+        freq: 392.00
+      },
+      j: {
+        name: 'G#4',
+        freq: 415.30
+      },
+      k: {
+        name: 'A4',
+        freq: 440.00
+      },
+      l: {
+        name: 'A#4',
+        freq: 466.16
+      },
+      q: {
+        name: 'B4',
+        freq: 493.88
+      },
+      w: {
+        name: 'C5',
+        freq: 523.25
+      },
+      e: {
+        name: 'C#5',
+        freq: 554.37
+      },
+      r: {
+        name: 'D5',
+        freq: 587.33
+      },
+      t: {
+        name: 'D#5',
+        freq: 622.25
+      },
+      z: {
+        name: 'E5',
+        freq: 659.25
+      },
+      u: {
+        name: 'F5',
+        freq: 698.46
+      },
+      i: {
+        name: 'F#5',
+        freq: 739.99
+      },
+      o: {
+        name: 'G5',
+        freq: 783.99
+      },
+      p: {
+        name: 'G#5',
+        freq: 830.61
+      },
+    },
+    onlyWhite: {
       y: {
         name: 'A2',
         freq: 110.00,
@@ -141,7 +242,227 @@ import { mapRange } from '../utils';
         name: 'E6',
         freq: 1318.5
       },
-  };
+    }
+  }
+
+  // data
+  // const notes[store.settings.synth.notes]: {
+  //   [key: string]: INote;
+  //   } = {
+  //     y: {
+  //       name: 'G3',
+  //       freq: 196.00,
+  //     },
+  //     x: {
+  //       name: 'G#3',
+  //       freq: 207.65
+  //     },
+  //     c: {
+  //       name: 'A3',
+  //       freq: 220.00	
+  //     },
+  //     v: {
+  //       name: 'A#3',
+  //       freq: 233.08
+  //     },
+  //     b: {
+  //       name: 'B3',
+  //       freq: 246.94
+  //     },
+  //     n: {
+  //       name: 'C4',
+  //       freq: 261.63
+  //     },
+  //     m: {
+  //       name: 'C#4',
+  //       freq: 277.18
+  //     },
+  //     a: {
+  //       name: 'D4',
+  //       freq: 293.66
+  //     },
+  //     s: {
+  //       name: 'D#4',
+  //       freq: 311.13
+  //     },
+  //     d: {
+  //       name: 'E4',
+  //       freq: 329.63
+  //     },
+  //     f: {
+  //       name: 'F4',
+  //       freq: 349.23
+  //     },
+  //     g: {
+  //       name: 'F#4',
+  //       freq: 369.99
+  //     },
+  //     h: {
+  //       name: 'G4',
+  //       freq: 392.00
+  //     },
+  //     j: {
+  //       name: 'G#4',
+  //       freq: 415.30
+  //     },
+  //     k: {
+  //       name: 'A4',
+  //       freq: 440.00
+  //     },
+  //     l: {
+  //       name: 'A#4',
+  //       freq: 466.16
+  //     },
+  //     q: {
+  //       name: 'B4',
+  //       freq: 493.88
+  //     },
+  //     w: {
+  //       name: 'C5',
+  //       freq: 523.25
+  //     },
+  //     e: {
+  //       name: 'C#5',
+  //       freq: 554.37
+  //     },
+  //     r: {
+  //       name: 'D5',
+  //       freq: 587.33
+  //     },
+  //     t: {
+  //       name: 'D#5',
+  //       freq: 622.25
+  //     },
+  //     z: {
+  //       name: 'E5',
+  //       freq: 659.25
+  //     },
+  //     u: {
+  //       name: 'F5',
+  //       freq: 698.46
+  //     },
+  //     i: {
+  //       name: 'F#5',
+  //       freq: 739.99
+  //     },
+  //     o: {
+  //       name: 'G5',
+  //       freq: 783.99
+  //     },
+  //     p: {
+  //       name: 'G#5',
+  //       freq: 830.61
+  //     },
+  // };
+  // // data
+  // const notes[store.settings.synth.notes]: {
+  //   [key: string]: INote;
+  //   } = {
+  //     y: {
+  //       name: 'A2',
+  //       freq: 110.00,
+  //     },
+  //     x: {
+  //       name: 'B2',
+  //       freq: 123.47
+  //     },
+  //     c: {
+  //       name: 'C3',
+  //       freq: 130.81
+  //     },
+  //     v: {
+  //       name: 'D3',
+  //       freq: 146.83
+  //     },
+  //     b: {
+  //       name: 'E3',
+  //       freq: 164.81
+  //     },
+  //     n: {
+  //       name: 'F3',
+  //       freq: 174.61
+  //     },
+  //     m: {
+  //       name: 'G3',
+  //       freq: 196.00
+  //     },
+  //     a: {
+  //       name: 'A3',
+  //       freq: 220.00
+  //     },
+  //     s: {
+  //       name: 'B3',
+  //       freq: 246.94
+  //     },
+  //     d: {
+  //       name: 'C4',
+  //       freq: 261.63
+  //     },
+  //     f: {
+  //       name: 'D4',
+  //       freq: 293.66
+  //     },
+  //     g: {
+  //       name: 'E4',
+  //       freq: 329.63
+  //     },
+  //     h: {
+  //       name: 'F4',
+  //       freq: 349.23
+  //     },
+  //     j: {
+  //       name: 'G4',
+  //       freq: 392.00
+  //     },
+  //     k: {
+  //       name: 'A4',
+  //       freq: 440.00
+  //     },
+  //     l: {
+  //       name: 'B4',
+  //       freq: 493.88
+  //     },
+  //     q: {
+  //       name: 'C5',
+  //       freq: 523.25
+  //     },
+  //     w: {
+  //       name: 'D5',
+  //       freq: 587.33
+  //     },
+  //     e: {
+  //       name: 'E5',
+  //       freq: 659.25
+  //     },
+  //     r: {
+  //       name: 'F5',
+  //       freq: 698.46
+  //     },
+  //     t: {
+  //       name: 'G5',
+  //       freq: 783.99
+  //     },
+  //     z: {
+  //       name: 'A5',
+  //       freq: 880.00
+  //     },
+  //     u: {
+  //       name: 'B5',
+  //       freq: 987.77
+  //     },
+  //     i: {
+  //       name: 'C6',
+  //       freq: 1046.5
+  //     },
+  //     o: {
+  //       name: 'D6',
+  //       freq: 1174.6
+  //     },
+  //     p: {
+  //       name: 'E6',
+  //       freq: 1318.5
+  //     },
+  // };
 
   // state
   const validKeys = [ 
@@ -187,9 +508,9 @@ import { mapRange } from '../utils';
 
   const colorRValue = computed(() => {
     return state.activeKeys[0] ? Math.round(mapRange(
-      notes[state.activeKeys[0]].freq,
-      notes['y'].freq,
-      notes['p'].freq,
+      notes[store.settings.synth.notes][state.activeKeys[0]].freq,
+      notes[store.settings.synth.notes]['y'].freq,
+      notes[store.settings.synth.notes]['p'].freq,
       0,
       255
     )) : null;
@@ -197,9 +518,9 @@ import { mapRange } from '../utils';
 
   const colorGValue = computed(() => {
     return state.activeKeys[1] ? Math.round(mapRange(
-      notes[state.activeKeys[1]].freq,
-      notes['y'].freq,
-      notes['p'].freq,
+      notes[store.settings.synth.notes][state.activeKeys[1]].freq,
+      notes[store.settings.synth.notes]['y'].freq,
+      notes[store.settings.synth.notes]['p'].freq,
       0,
       255
     )) : null;
@@ -207,9 +528,9 @@ import { mapRange } from '../utils';
 
   const colorBValue = computed(() => {
     return state.activeKeys[2] ? Math.round(mapRange(
-      notes[state.activeKeys[2]].freq,
-      notes['y'].freq,
-      notes['p'].freq,
+      notes[store.settings.synth.notes][state.activeKeys[2]].freq,
+      notes[store.settings.synth.notes]['y'].freq,
+      notes[store.settings.synth.notes]['p'].freq,
       0,
       255
     )) : null;
@@ -247,9 +568,9 @@ import { mapRange } from '../utils';
   const playChord = () => {
     synth.triggerAttackRelease(
       [
-        notes[state.activeKeys[0]].name,
-        notes[state.activeKeys[1]].name,
-        notes[state.activeKeys[2]].name,
+        notes[store.settings.synth.notes][state.activeKeys[0]].name,
+        notes[store.settings.synth.notes][state.activeKeys[1]].name,
+        notes[store.settings.synth.notes][state.activeKeys[2]].name,
       ],
       1.15
     );
@@ -276,7 +597,7 @@ import { mapRange } from '../utils';
     keyElement.classList.add(`active`);
     keyElement.classList.add(`active-${state.activeKeys.length}`);
     
-    synth.triggerAttackRelease(notes[key].name, 0.35);
+    synth.triggerAttackRelease(notes[store.settings.synth.notes][key].name, 0.35);
 
     if(state.activeKeys.length === state.synthOptions.polyphony) {
 
@@ -329,9 +650,9 @@ import { mapRange } from '../utils';
 <template>
   <div class="keyboard">
     <div class="active-key-grid">
-      <div class="active-key" :data-number="colorRValue">{{ notes[state.activeKeys[0]] && notes[state.activeKeys[0]].name }}</div>
-      <div class="active-key" :data-number="colorGValue">{{ notes[state.activeKeys[1]] && notes[state.activeKeys[1]].name }}</div>
-      <div class="active-key" :data-number="colorBValue">{{ notes[state.activeKeys[2]] && notes[state.activeKeys[2]].name }}</div>
+      <div class="active-key" :data-number="colorRValue">{{ notes[store.settings.synth.notes][state.activeKeys[0]] && notes[store.settings.synth.notes][state.activeKeys[0]].name }}</div>
+      <div class="active-key" :data-number="colorGValue">{{ notes[store.settings.synth.notes][state.activeKeys[1]] && notes[store.settings.synth.notes][state.activeKeys[1]].name }}</div>
+      <div class="active-key" :data-number="colorBValue">{{ notes[store.settings.synth.notes][state.activeKeys[2]] && notes[store.settings.synth.notes][state.activeKeys[2]].name }}</div>
     </div>
     <div ref="row1" class="row">
       <div class="key key-q" @click="(event) => handleKeyClick(event)">Q</div>

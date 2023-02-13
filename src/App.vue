@@ -2,6 +2,7 @@
   import { useDark, useToggle } from '@vueuse/core';
   import ColorPalette from './components/ColorPalette.vue' ;
   import ColorPaletteList from './components/ColorPaletteList.vue' ;
+  import ColorPaletteListToolbar from './components/ColorPaletteListToolbar.vue';
   import HiddenTitle from './components/HiddenTitle.vue';
   import RangeSlider from './components/RangeSlider.vue';
   import Synth from './components/Synth.vue';
@@ -22,10 +23,6 @@
     changeBackgroundColor(value);
     store.getColorPalette(value);
   };
-
-  // onMounted(() => {
-  //   onsole.log(`The initial count is ${count.value}.`)
-  // }) 
 </script>
 
 <template>
@@ -57,10 +54,9 @@
           <h1>Saved Palettes</h1>
         </HiddenTitle>
         <div class="wrapper">
-          <div>
-            <button @click="store.loadPalettesFromCloud">Load from Cloud</button>
-            <ColorPaletteList :palettes="store.savedPalettes"/>
-          </div>
+          <ColorPaletteList :palettes="store.savedPalettes">
+            <ColorPaletteListToolbar/>
+          </ColorPaletteList>
         </div>
       </section>
     </Transition>
@@ -308,9 +304,5 @@
 
   .settings-field {
     display: grid;
-  }
-
-  .settings-field label {
-
   }
 </style>

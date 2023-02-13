@@ -21,7 +21,7 @@ import { store } from '../store';
   </div>
 </template>
 
-<style>
+<style scoped>
   .toolbar {
     position: fixed;
     top: 1rem;

@@ -1,6 +1,7 @@
 import { reactive } from  'vue';
 import { IColor, IColorPalette, ColorMode } from '../types/color-api';
 import type { ToneOscillatorType } from 'tone';
+import type { NoteVariation } from '../types/synth';
 import { useToast } from 'vue-toastification';
 import IconClose from '../components/IconClose.vue';
 import IconError from '../components/IconError.vue';
@@ -11,6 +12,7 @@ import IconSave from '../components/IconSave.vue';
 const toast = useToast();
 
 interface IState {
+  isLoading: boolean,
   currentView: string,
   lastView: string,
   colorPalette?: IColorPalette,
@@ -21,7 +23,8 @@ interface IState {
     },
     synth: {
       waveform: ToneOscillatorType,
-      volume: number
+      volume: number,
+      notes: NoteVariation
     }
   },
   savedPalettes: IColorPalette[],
@@ -35,6 +38,7 @@ interface IState {
 
 export const store: IState = reactive({
   //state
+  isLoading: false as boolean,
   currentView: 'hello',
   lastView: '',
   colorPalette: undefined,
@@ -45,6 +49,7 @@ export const store: IState = reactive({
     synth: {
       waveform: 'triangle3',
       volume: -6,
+      notes: 'all'
     }
   },
   savedPalettes: [],
@@ -57,10 +62,11 @@ export const store: IState = reactive({
     if(this.colorPalette) this.savedPalettes.push(this.colorPalette);
   },
   resetColorPalette() {
-    this.colorPalette = undefined;
+    if(this.colorPalette) this.colorPalette = undefined;
   },
   getColorPalette(colorCode) {
     const strippedColorString = colorCode.replace(' ', '').substring(1);
+    this.isLoading = true;
 
     fetch(`https://www.thecolorapi.com/scheme?rgb=${strippedColorString}&mode=${store.settings.color.mode}`)
       .then(response => response.json())
@@ -81,7 +87,8 @@ export const store: IState = reactive({
             closeButton: IconClose
           }
         );
-      });
+      })
+      .finally(() => this.isLoading = false);
   },
   savePaletteToCloud() {
     if(!store.colorPalette) return;
@@ -98,6 +105,8 @@ export const store: IState = reactive({
       headers: myHeaders,
       body: raw
     };
+
+    this.isLoading = true;
 
     fetch('https://getpantry.cloud/apiv1/pantry/7414ee56-4f3a-4ab2-bb57-69e36e0362b1/basket/colors', requestOptions)
       .then(response => response.text())
@@ -117,9 +126,12 @@ export const store: IState = reactive({
           closeButton: IconClose
         }
         );
-      });
+      })
+      .finally(() => this.isLoading = false);
   },
   loadPalettesFromCloud() {
+    this.isLoading = true;
+
     fetch('https://getpantry.cloud/apiv1/pantry/7414ee56-4f3a-4ab2-bb57-69e36e0362b1/basket/colors')
       .then(response => response.text())
       .then(result => {
@@ -139,6 +151,7 @@ export const store: IState = reactive({
           closeButton: IconClose
         }
       );
-      });
+      })
+      .finally(() => this.isLoading = false);
   }
 })

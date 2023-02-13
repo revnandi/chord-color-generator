@@ -10,13 +10,27 @@
 </script>
 
 <template>
-  <div>
-    <ul>
+  <div class="container">
+    <slot></slot>
+    <ul class="list">
       <ColorPalette v-for="palette in props.palettes" :color-palette="palette"/>
+      <div v-if="props.palettes.length === 0" class="notice">No local palettes</div>
     </ul>
   </div>
 </template>
 
-<stlye>
+<style scoped>
+  .container {
+    
+  }
 
-</stlye>
+  .list {
+    padding: 0;
+    margin: 0;
+  }
+
+  .notice {
+    margin-top: 2rem;
+    text-align: center;
+  }
+</style>
