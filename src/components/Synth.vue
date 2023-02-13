@@ -244,6 +244,17 @@ import { mapRange } from '../utils';
     }
   });
 
+  const playChord = () => {
+    synth.triggerAttackRelease(
+      [
+        notes[state.activeKeys[0]].name,
+        notes[state.activeKeys[1]].name,
+        notes[state.activeKeys[2]].name,
+      ],
+      1.15
+    );
+  };
+
   const handleKeyPress = (event: KeyboardEvent) => {
     if(!validKeys.includes(event.key)) return;
     handleInput(event.key);
@@ -272,14 +283,7 @@ import { mapRange } from '../utils';
       const generatedColor = `rgb(${colorRValue.value}, ${colorGValue.value}, ${colorBValue.value})`;
 
       setTimeout(() => {
-        synth.triggerAttackRelease(
-          [
-            notes[state.activeKeys[0]].name,
-            notes[state.activeKeys[1]].name,
-            notes[state.activeKeys[2]].name,
-          ],
-          1.15
-        );
+        playChord();
 
         emit('colorSeedGenerated', generatedColor);
       }, 1250);
@@ -363,7 +367,7 @@ import { mapRange } from '../utils';
     </div>
     <div class="bottom-buttons">
       <Transition>
-        <button v-if="polyPhonyLimitReached">
+        <button v-if="polyPhonyLimitReached" @click="playChord()">
           <svg width="1rem" height="1rem" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="var(--color-main)">
             <path d="M6.906 4.537A.6.6 0 006 5.053v13.894a.6.6 0 00.906.516l11.723-6.947a.6.6 0 000-1.032L6.906 4.537z" stroke="var(--color-main)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
           </svg>

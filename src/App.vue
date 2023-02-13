@@ -4,49 +4,13 @@
   import ColorPaletteList from './components/ColorPaletteList.vue' ;
   import HiddenTitle from './components/HiddenTitle.vue';
   import RangeSlider from './components/RangeSlider.vue';
-  import Synth from './components/Synth.vue' ;
-  import { ref, reactive } from 'vue';
-  import  { IColor, IColorPalette, ColorMode } from './types/color-api';
-  import type { ToneOscillatorType } from 'tone';
+  import Synth from './components/Synth.vue';
+  import Toolbar from './components/Toolbar.vue';
+  import { store } from './store';
 
   // dark mode
   const isDark = useDark();
   const toggleDark = useToggle(isDark);
-  
-  // interfaces
-  interface IState {
-    currentView: string,
-    colorPalette?: IColorPalette,
-    seed?: IColor,
-    settings: {
-      color: {
-        mode: ColorMode
-      },
-      synth: {
-        waveform: ToneOscillatorType,
-        volume: number
-      }
-    },
-    savedPalettes: IColorPalette[]
-  };
-
-  // data/state
-  const state: IState = reactive(
-    {
-      currentView: 'hello',
-      colorPalette: undefined,
-      settings: {
-        color: {
-          mode: 'complement'
-        },
-        synth: {
-          waveform: 'triangle3',
-          volume: -6,
-        }
-      },
-      savedPalettes: []
-    }
-  );
 
   // methods
   const changeBackgroundColor = (color: string) => {
@@ -54,80 +18,9 @@
     styleRoot.style.setProperty('--color-alt', color);
   };
 
-  const getColorPalette = (previousColor: string) => {
-    const strippedColorString = previousColor.replace(' ', '').substring(1);
-
-    fetch(`https://www.thecolorapi.com/scheme?rgb=${strippedColorString}&mode=${state.settings.color.mode}`)
-      .then(response => response.json())
-      .then(response => {
-        state.colorPalette = response;
-      })
-      .catch(err => console.error(err));
-  };
-
   const handleColorSeedGenerated = (value: string) => {
     changeBackgroundColor(value);
-    getColorPalette(value);
-  };
-
-  const savePaletteToCloud = () => {
-    if(!state.colorPalette) return;
-
-    state.savedPalettes.push(state.colorPalette);
-
-    // const imageUrlData = new FormData();
-    // imageUrlData.append('url', state.colorPalette.image.named);
-
-    // const fetchOptions = {
-    //   method: 'POST',
-    //   headers: {
-    //     'Content-Type': 'multipart/form-data'
-    //   },
-    //   body: imageUrlData
-    // };
-
-    // fetch(`https://0x0.st`, fetchOptions)
-    //   .then(response => response.json())
-    //   .then(response => {
-    //     console.log(response);
-    //   })
-    //   .catch(err => console.error(err));
-    const myHeaders = new Headers();
-    myHeaders.append('Content-Type', 'application/json');
-
-    const raw = JSON.stringify(Object.assign({}, state.savedPalettes));
-
-    const requestOptions = {
-      method: 'POST',
-      headers: myHeaders,
-      body: raw
-    };
-
-    fetch('https://getpantry.cloud/apiv1/pantry/7414ee56-4f3a-4ab2-bb57-69e36e0362b1/basket/colors', requestOptions)
-      .then(response => response.text())
-      .then(result => console.log(result))
-      .catch(error => console.log('error', error));
-  };
-
-  const loadPalettesFromLCoud = () => {
-    fetch('https://getpantry.cloud/apiv1/pantry/7414ee56-4f3a-4ab2-bb57-69e36e0362b1/basket/colors')
-      .then(response => response.text())
-      .then(result => 
-        state.savedPalettes = Object.values(JSON.parse(result))
-      )
-      .catch(error => console.log('error', error));
-  };
-
-  const changeView = (viewSlug: string) => {
-    state.currentView = viewSlug;
-  };
-
-  const resetApp = () => {
-    // const styleRoot: HTMLElement = document.querySelector(':root')!;
-
-    // styleRoot.style.setProperty(isDark ? '--color-main' :, isDark ? '#fff' : '#000');
-
-    state.colorPalette = undefined;
+    store.getColorPalette(value);
   };
 
   // onMounted(() => {
@@ -140,70 +33,60 @@
     <HiddenTitle>
       <h1>Chord Color Palettes</h1>
     </HiddenTitle>
-    <div class="toolbar">
-      <button @click="changeView('palettes')" aria-label="color palettes">
-        <svg class="icon" width="1.5rem" height="1.5rem" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="var(--color-main)">
-          <path d="M20.51 9.54a1.899 1.899 0 01-1 1.09A7 7 0 0015.37 17c.001.47.048.939.14 1.4a2.16 2.16 0 01-.31 1.65 1.79 1.79 0 01-1.21.8 9 9 0 01-10.62-9.13A9.05 9.05 0 0111.85 3h.51a9 9 0 018.06 5 2 2 0 01.09 1.52v.02z" stroke="var(--color-main)" stroke-width="1.5"></path>
-          <path d="M8 16.01l.01-.011M6 12.01l.01-.011M8 8.01l.01-.011M12 6.01l.01-.011M16 8.01l.01-.011" stroke="var(--color-main)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-        </svg>
-        Palettes
-      </button>
-      <button @click="changeView(state.currentView === 'setting' ? 'synth' : 'settings')" aria-label="settings">
-        <svg class="icon" width="1.5rem" height="1.5rem" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="var(--color-main)">
-          <path d="M12 15a3 3 0 100-6 3 3 0 000 6z" stroke="var(--color-main)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-          <path d="M19.622 10.395l-1.097-2.65L20 6l-2-2-1.735 1.483-2.707-1.113L12.935 2h-1.954l-.632 2.401-2.645 1.115L6 4 4 6l1.453 1.789-1.08 2.657L2 11v2l2.401.655L5.516 16.3 4 18l2 2 1.791-1.46 2.606 1.072L11 22h2l.604-2.387 2.651-1.098C16.697 18.831 18 20 18 20l2-2-1.484-1.75 1.098-2.652 2.386-.62V11l-2.378-.605z" stroke="var(--color-main)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-        </svg>
-        Settings
-      </button>
-    </div>
 
     <Transition>
-      <section v-if="state.currentView === 'hello'" class="view">
+      <Toolbar v-if="store.currentView !== 'hello'"/>
+    </Transition>
+
+    <Transition>
+      <section v-if="store.currentView === 'hello'" class="view">
         <HiddenTitle>
           <h1>Hello</h1>
         </HiddenTitle>
         <div class="wrapper">
           <div>
-            <button @click="changeView('synth')">Ready to start?</button>
-          </div>
-        </div>
-      </section>
-    </Transition>
-
-    <Transition>
-      <section v-if="state.currentView === 'palettes'" class="view">
-        <HiddenTitle>
-          <h1>Saved Palettes</h1>
-        </HiddenTitle>
-        <div class="wrapper">
-          <div>
-            <button @click="loadPalettesFromLCoud">Load from Cloud</button>
-            <ColorPaletteList :palettes="state.savedPalettes"/>
+            <button @click="store.changeView('synth')">Ready to start?</button>
           </div>
         </div>
       </section>
     </Transition>
 
     <Transition name="slide">
-      <section v-if="state.currentView === 'synth'" class="view">
+      <section v-if="store.currentView === 'palettes'" class="view">
+        <HiddenTitle>
+          <h1>Saved Palettes</h1>
+        </HiddenTitle>
+        <div class="wrapper">
+          <div>
+            <button @click="store.loadPalettesFromCloud">Load from Cloud</button>
+            <ColorPaletteList :palettes="store.savedPalettes"/>
+          </div>
+        </div>
+      </section>
+    </Transition>
+
+    <Transition name="slide">
+      <section v-if="store.currentView === 'synth'" class="view">
         <div class="wrapper column">
-          <button @click="savePaletteToCloud()">Save Palette</button>
+          <Transition>
+            <button v-if="store.colorPalette" @click="store.savePaletteToCloud">Save Palette</button>
+          </Transition>
           <HiddenTitle>
             <h1>Keyboard</h1>
           </HiddenTitle>
-          <ColorPalette :color-palette="state.colorPalette"/>
-          <ColorSeed :seed="state.seed"/>
+          <ColorPalette :color-palette="store.colorPalette"/>
+          <ColorSeed :seed="store.seed"/>
           <Synth
             @color-seed-generated="handleColorSeedGenerated"
-            @reset="resetApp"
-            :settings="state.settings.synth"
+            @reset="store.resetColorPalette"
+            :settings="store.settings.synth"
           />
         </div>
       </section>
     </Transition>
 
     <Transition name="slide">
-      <section v-if="state.currentView === 'settings'" class="view">
+      <section v-if="store.currentView === 'settings'" class="view">
         <HiddenTitle>
           <h1>Settings</h1>
         </HiddenTitle>
@@ -212,7 +95,7 @@
             <div class="settings-grid">
               <div class="settings-field">
               <label for="color-mode">Color Mode</label>
-                <select name="color-mode" v-model="state.settings.color.mode">
+                <select name="color-mode" v-model="store.settings.color.mode">
                   <option value="monochrome">Monochrome</option>
                   <option value="monochrome-dark">Monochrome-dark</option>
                   <option value="monochrome-light">Monochrome-light</option>
@@ -225,7 +108,7 @@
               </div>
               <div class="settings-field">
                 <label for="waveform-select">Synth waveform</label>
-                <select name="waveform-select" v-model="state.settings.synth.waveform">
+                <select name="waveform-select" v-model="store.settings.synth.waveform">
                   <option value="sawtooth">sawtooth</option>
                   <option value="sine">sine</option>
                   <option value="square">square</option>
@@ -361,7 +244,7 @@
                 </select>
               </div>
               <div class="settings-field">
-                <RangeSlider :min="-100" :max="0" :model-value="state.settings.synth.volume"/>
+                <RangeSlider :min="-100" :max="0" :model-value="store.settings.synth.volume"/>
               </div>
               <div class="dark-mode-switch-container">
                 <svg class="icon" width="2rem" height="2rem" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -376,7 +259,7 @@
                 </svg>
               </div>
             </div>
-            <button @click="changeView('synth')">Back</button>
+            <button @click="store.changeView('synth')">Back</button>
           </div>
         </div>
       </section>
@@ -387,17 +270,6 @@
 
 <style scoped>
   .app-inner {
-  }
-  .toolbar {
-    position: fixed;
-    top: 1rem;
-    right: 1rem;
-    display: flex;
-    align-items: center;
-  }
-
-  .toolbar > * + * {
-    margin-left: 0.25rem;
   }
 
   .dark-mode-switch-container {

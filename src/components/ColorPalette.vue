@@ -31,6 +31,9 @@ const props = defineProps<IProps>();
     <ul v-if="props.colorPalette" class="color-palette-list">
       <li v-for="item in props.colorPalette.colors" class="color-palette-item" :style="`background-color: ${item.hex.value};`">
         <h2 class="color-name">{{ item.name.value }}</h2>
+        <span class="color-code">{{ `rgb(${item.rgb.r}, ${item.rgb.g}, ${item.rgb.b})` }}</span>
+        <span class="color-code">{{ item.hex.value }}</span>
+        <span></span>
       </li>
     </ul>
   </div>
@@ -54,6 +57,7 @@ const props = defineProps<IProps>();
 
   .color-palette-item {
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     width: 6.25rem;
@@ -69,6 +73,12 @@ const props = defineProps<IProps>();
     margin: 0;
     font-size: 0.75rem;
     text-align: center;
+  }
+
+  .color-code {
+    margin: 0;
+    font-size: 0.75rem;
+    text-align: center; 
   }
 
 </style>

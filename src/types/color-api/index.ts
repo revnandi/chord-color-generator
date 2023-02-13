@@ -30,6 +30,49 @@ export type CMYKColor = {
   }
 };
 
+export type HexColor = {
+  clean: string,
+  value: string
+}
+
+export type HSLColor = {
+  fraction: {
+    h: number,
+    s: number,
+    l: number
+  },
+  h: number,
+  s: number,
+  l: number,
+  value: string
+}
+
+export type HSVColor = {
+  hsv: {
+    fraction: {
+      h: number,
+      s: number,
+      v: number
+    },
+    h: number,
+    s: number,
+    v: number,
+    value: string
+  },
+}
+
+export type RGBColor = {
+  fraction: {
+    r: number,
+    g: number,
+    b: number
+  },
+  r: number,
+  g: number,
+  b: number,
+  value: string
+}
+
 export type ColorName = {
   closest_named_hex: string
   distance: number,
@@ -48,43 +91,10 @@ export interface IColor {
   contrast: {
     value: string
   },
-  hex: {
-    clean: string,
-    value: string
-  },
-  hsl: {
-    fraction: {
-      h: number,
-      s: number,
-      l: number
-    },
-    h: number,
-    s: number,
-    l: number,
-    value: string
-  },
-  hsv: {
-    fraction: {
-      h: number,
-      s: number,
-      v: number
-    },
-    h: number,
-    s: number,
-    v: number,
-    value: string
-  },
-  rgb: {
-    fraction: {
-      r: number,
-      g: number,
-      b: number
-    },
-    r: number,
-    g: number,
-    b: number,
-    value: string
-  },
+  hex: HexColor,
+  hsl: HSLColor,
+  hsv: HSVColor,
+  rgb: RGBColor,
   image: ColorImage,
   name: ColorName
 }

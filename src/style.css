@@ -229,6 +229,48 @@ input:checked + .slider:before {
   opacity: 0;
 }
 
+// toast plugin overwrites
+.Vue-Toastification__container {}
+
+.Vue-Toastification__toast--default {}
+
+.Vue-Toastification__toast-body {}
+
+.Vue-Toastification__close-button {}
+
+.Vue-Toastification__progress-bar {}
+
+.Vue-Toastification__container.toast-container-style-overwrite.top-left {
+  padding: 0;
+}
+
+.Vue-Toastification__toast--default.toast-style-overwrite {
+  min-width: 0;
+  min-height: 0;
+  padding: 0.6em 1.2em;
+  /* border-bottom: 1px solid var(--color-main); */
+  border-radius: 0;
+  background-color: transparent;
+  box-shadow: none;
+}
+
+.Vue-Toastification__toast-body.toast-body-style-overwrite {
+  color: var(--color-main);
+}
+
+.Vue-Toastification__toast.toast-icon-style-overwrite {
+  margin: 0 0.25rem 0 0;
+}
+
+.Vue-Toastification__close-button.toast-close-style-overwrite {
+  opacity: 1;
+}
+
+.Vue-Toastification__toast--default .Vue-Toastification__progress-bar {
+  height: 1px;
+  background-color: var(--color-main);
+}
+
 #app {
   max-width: 1280px;
   width: 100%;
