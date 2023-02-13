@@ -1,23 +1,49 @@
 <script setup lang="ts">
+  import { computed } from 'vue';
+
+  // interfaces
   interface IProps {
     min: number,
     max: number,
     modelValue: number
   };
 
-const props = defineProps<IProps>();
+  // props
+  const props = defineProps<IProps>();
+
+  // emits
+  const emit = defineEmits([
+    'update:modelValue',
+  ]);
+
+  // computed
+  const value = computed({
+    get() {
+      return props.modelValue
+    },
+    set(value) {
+      emit('update:modelValue', Number(value))
+    }
+  })
 </script>
 
 <template>
   <div class="container">
     <label for="volume">Volume</label>
-    <input type="range" :min="props.min" :max="props.max" value="-6" class="input"/>
+    <input
+      type="range"
+      :min="props.min"
+      :max="props.max"
+      v-model="value"
+      class="input"
+    />
   </div>
 </template>
 
 <style scoped>
 .container {
-
+  display: flex;
+  flex-direction: column;
 }
 
 label {
@@ -37,6 +63,7 @@ input {
   background: var(--color-main);
   outline: none;
   cursor: pointer;
+  border: none;
 }
 
 input::-webkit-slider-thumb {

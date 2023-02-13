@@ -16,24 +16,27 @@ interface IState {
   currentView: string,
   lastView: string,
   colorPalette?: IColorPalette,
+  savedPalettes: IColorPalette[],
   seed?: IColor,
   settings: {
     color: {
       mode: ColorMode
     },
     synth: {
-      waveform: ToneOscillatorType,
+      waveform: string,
       volume: number,
       notes: NoteVariation
     }
   },
-  savedPalettes: IColorPalette[],
   changeView: (viewSlug: string) => void,
+  setSeed: (seed: IColor) => void,
   saveCurrentPalette: () => void,
+  removePalette: (index: number) => void,
   resetColorPalette: () => void,
   getColorPalette: (colorCode: string) => void,
-  savePaletteToCloud: () => void,
-  loadPalettesFromCloud: () => void
+  savePalettesToCloud: () => void,
+  loadPalettesFromCloud: () => void,
+  setVolume: (value: number) => void,
 };  
 
 export const store: IState = reactive({
@@ -42,6 +45,8 @@ export const store: IState = reactive({
   currentView: 'hello',
   lastView: '',
   colorPalette: undefined,
+  seed: undefined as IColor | undefined,
+  savedPalettes: [],
   settings: {
     color: {
       mode: 'complement'
@@ -52,14 +57,27 @@ export const store: IState = reactive({
       notes: 'all'
     }
   },
-  savedPalettes: [],
   // mutations
   changeView(viewSlug) {
     this.lastView = this.currentView;
     this.currentView = viewSlug;
   },
+  removePalette(index) {
+    this.savedPalettes.splice(index, 1);
+  },
+  setSeed(seed) {
+    this.seed = seed;
+  },
   saveCurrentPalette() {
-    if(this.colorPalette) this.savedPalettes.push(this.colorPalette);
+    if(this.colorPalette) {
+      this.savedPalettes.push(this.colorPalette);
+      toast('Palette added to collection',
+      {
+        icon: IconPalette,
+        closeButton: IconClose
+      }
+    );
+    };
   },
   resetColorPalette() {
     if(this.colorPalette) this.colorPalette = undefined;
@@ -78,6 +96,7 @@ export const store: IState = reactive({
           }
         );
         store.colorPalette = response;
+        store.setSeed(response.seed)
       })
       .catch(err => {
         console.log(err);
@@ -90,10 +109,7 @@ export const store: IState = reactive({
       })
       .finally(() => this.isLoading = false);
   },
-  savePaletteToCloud() {
-    if(!store.colorPalette) return;
-
-    store.saveCurrentPalette();
+  savePalettesToCloud() {
 
     const myHeaders = new Headers();
     myHeaders.append('Content-Type', 'application/json');
@@ -153,5 +169,8 @@ export const store: IState = reactive({
       );
       })
       .finally(() => this.isLoading = false);
+  },
+  setVolume(value) {
+    this.settings.synth.volume = value;
   }
 })

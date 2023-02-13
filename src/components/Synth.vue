@@ -4,17 +4,11 @@ import { debounce } from 'lodash';
 import type { ToneOscillatorType } from 'tone';
 import type { Notes } from '../types/synth'
 import * as Tone from 'tone';
-import { onBeforeUnmount, onMounted, reactive, computed, ref, watch } from 'vue';
+import { onBeforeUnmount, onMounted, reactive, computed, ref } from 'vue';
+import type { Ref } from 'vue'
 import { mapRange } from '../utils';
 
   // interfaces
-  interface IProps {
-    settings: {
-      waveform: ToneOscillatorType,
-      volume: number
-    }
-  };
-
   interface IState {
     activeKeys: string[],
     synthOptions: {
@@ -22,14 +16,13 @@ import { mapRange } from '../utils';
       }
   };
 
-  const props = defineProps<IProps>();
-
-  //props
+  // emits
   const emit = defineEmits([
     'colorSeedGenerated',
     'reset'
   ]);
 
+  // data
   const notes: Notes = {
     all: {
       y: {
@@ -245,225 +238,6 @@ import { mapRange } from '../utils';
     }
   }
 
-  // data
-  // const notes[store.settings.synth.notes]: {
-  //   [key: string]: INote;
-  //   } = {
-  //     y: {
-  //       name: 'G3',
-  //       freq: 196.00,
-  //     },
-  //     x: {
-  //       name: 'G#3',
-  //       freq: 207.65
-  //     },
-  //     c: {
-  //       name: 'A3',
-  //       freq: 220.00	
-  //     },
-  //     v: {
-  //       name: 'A#3',
-  //       freq: 233.08
-  //     },
-  //     b: {
-  //       name: 'B3',
-  //       freq: 246.94
-  //     },
-  //     n: {
-  //       name: 'C4',
-  //       freq: 261.63
-  //     },
-  //     m: {
-  //       name: 'C#4',
-  //       freq: 277.18
-  //     },
-  //     a: {
-  //       name: 'D4',
-  //       freq: 293.66
-  //     },
-  //     s: {
-  //       name: 'D#4',
-  //       freq: 311.13
-  //     },
-  //     d: {
-  //       name: 'E4',
-  //       freq: 329.63
-  //     },
-  //     f: {
-  //       name: 'F4',
-  //       freq: 349.23
-  //     },
-  //     g: {
-  //       name: 'F#4',
-  //       freq: 369.99
-  //     },
-  //     h: {
-  //       name: 'G4',
-  //       freq: 392.00
-  //     },
-  //     j: {
-  //       name: 'G#4',
-  //       freq: 415.30
-  //     },
-  //     k: {
-  //       name: 'A4',
-  //       freq: 440.00
-  //     },
-  //     l: {
-  //       name: 'A#4',
-  //       freq: 466.16
-  //     },
-  //     q: {
-  //       name: 'B4',
-  //       freq: 493.88
-  //     },
-  //     w: {
-  //       name: 'C5',
-  //       freq: 523.25
-  //     },
-  //     e: {
-  //       name: 'C#5',
-  //       freq: 554.37
-  //     },
-  //     r: {
-  //       name: 'D5',
-  //       freq: 587.33
-  //     },
-  //     t: {
-  //       name: 'D#5',
-  //       freq: 622.25
-  //     },
-  //     z: {
-  //       name: 'E5',
-  //       freq: 659.25
-  //     },
-  //     u: {
-  //       name: 'F5',
-  //       freq: 698.46
-  //     },
-  //     i: {
-  //       name: 'F#5',
-  //       freq: 739.99
-  //     },
-  //     o: {
-  //       name: 'G5',
-  //       freq: 783.99
-  //     },
-  //     p: {
-  //       name: 'G#5',
-  //       freq: 830.61
-  //     },
-  // };
-  // // data
-  // const notes[store.settings.synth.notes]: {
-  //   [key: string]: INote;
-  //   } = {
-  //     y: {
-  //       name: 'A2',
-  //       freq: 110.00,
-  //     },
-  //     x: {
-  //       name: 'B2',
-  //       freq: 123.47
-  //     },
-  //     c: {
-  //       name: 'C3',
-  //       freq: 130.81
-  //     },
-  //     v: {
-  //       name: 'D3',
-  //       freq: 146.83
-  //     },
-  //     b: {
-  //       name: 'E3',
-  //       freq: 164.81
-  //     },
-  //     n: {
-  //       name: 'F3',
-  //       freq: 174.61
-  //     },
-  //     m: {
-  //       name: 'G3',
-  //       freq: 196.00
-  //     },
-  //     a: {
-  //       name: 'A3',
-  //       freq: 220.00
-  //     },
-  //     s: {
-  //       name: 'B3',
-  //       freq: 246.94
-  //     },
-  //     d: {
-  //       name: 'C4',
-  //       freq: 261.63
-  //     },
-  //     f: {
-  //       name: 'D4',
-  //       freq: 293.66
-  //     },
-  //     g: {
-  //       name: 'E4',
-  //       freq: 329.63
-  //     },
-  //     h: {
-  //       name: 'F4',
-  //       freq: 349.23
-  //     },
-  //     j: {
-  //       name: 'G4',
-  //       freq: 392.00
-  //     },
-  //     k: {
-  //       name: 'A4',
-  //       freq: 440.00
-  //     },
-  //     l: {
-  //       name: 'B4',
-  //       freq: 493.88
-  //     },
-  //     q: {
-  //       name: 'C5',
-  //       freq: 523.25
-  //     },
-  //     w: {
-  //       name: 'D5',
-  //       freq: 587.33
-  //     },
-  //     e: {
-  //       name: 'E5',
-  //       freq: 659.25
-  //     },
-  //     r: {
-  //       name: 'F5',
-  //       freq: 698.46
-  //     },
-  //     t: {
-  //       name: 'G5',
-  //       freq: 783.99
-  //     },
-  //     z: {
-  //       name: 'A5',
-  //       freq: 880.00
-  //     },
-  //     u: {
-  //       name: 'B5',
-  //       freq: 987.77
-  //     },
-  //     i: {
-  //       name: 'C6',
-  //       freq: 1046.5
-  //     },
-  //     o: {
-  //       name: 'D6',
-  //       freq: 1174.6
-  //     },
-  //     p: {
-  //       name: 'E6',
-  //       freq: 1318.5
-  //     },
-  // };
-
   // state
   const validKeys = [ 
     'q',
@@ -536,22 +310,21 @@ import { mapRange } from '../utils';
     )) : null;
   });
 
-  // @ts-ignore
-  const row1: ref<NodeList | null> = ref(null);
-  // @ts-ignore
-  const row2: ref<NodeList | null> = ref(null);
-  // @ts-ignore
-  const row3: ref<NodeList | null> = ref(null);
-  // @ts-ignore
-  const keys: ref<[NodeList]> = ref([])
+
+  const row1: Ref<NodeList | null> = ref(null);
   
+  const row2: Ref<NodeList | null> = ref(null);
+
+  const row3: Ref<NodeList | null> = ref(null);
+  // @ts-ignore
+  const keys: Ref<NodeList[]> = ref([])
   // @ts-ignore
   const synth = new Tone.PolySynth({
     maxPolyphony: state.synthOptions.polyphony,
-    volume: props.settings.volume,
+    volume: store.settings.synth.volume,
     options: {
       oscillator: {
-        type: props.settings.waveform
+        type: store.settings.synth.waveform
       }
     }
   }).toDestination();
@@ -589,9 +362,12 @@ import { mapRange } from '../utils';
 
   const handleInput = (key: string) => {
     // validate key input
+    if(store.currentView !== 'synth') return;
     if(state.activeKeys.includes(key) || polyPhonyLimitReached.value) return;
 
     state.activeKeys.push(key);
+
+    console.log(keys.value[0])
 
     const keyElement = keys.value[0].find((element: HTMLDivElement) => element.classList.contains(`key-${key}`));
     keyElement.classList.add(`active`);
@@ -624,11 +400,6 @@ import { mapRange } from '../utils';
 
     emit('reset');
   };
-
-  // watchers
-  watch(state.activeKeys, async (newQuestion, oldQuestion) => {
-
-  })
 
   // lifecycle
   onMounted(() => {

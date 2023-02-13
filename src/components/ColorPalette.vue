@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { reactive, computed } from 'vue';
-import Spinner from './Spinner.vue';
 import { IColorPalette } from '../types/color-api';
 
 // interfaces
@@ -15,7 +14,6 @@ const props = defineProps<IProps>();
 
 <template>
   <div class="color-palette-container">
-    <Spinner v-if="!props.colorPalette"/>
     <ul v-if="props.colorPalette" class="color-palette-list">
       <li v-for="item in props.colorPalette.colors" class="color-palette-item" :style="`background-color: ${item.hex.value};`">
         <h2 class="color-name">{{ item.name.value }}</h2>
@@ -23,6 +21,7 @@ const props = defineProps<IProps>();
         <span class="color-code">{{ item.hex.value }}</span>
         <span></span>
       </li>
+      <slot></slot>
     </ul>
   </div>
 </template>
