@@ -319,7 +319,6 @@ import { mapRange } from '../utils';
 
   const row3: Ref<NodeList | null> = ref(null);
 
-  // const keys: Ref<Element[]> = ref([])
   // @ts-ignore
   const synth = new Tone.PolySynth({
     maxPolyphony: state.synthOptions.polyphony,
