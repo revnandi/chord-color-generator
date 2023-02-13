@@ -312,12 +312,10 @@ import { mapRange } from '../utils';
     )) : null;
   });
 
-
-  const row1: Ref<NodeList | null> = ref(null);
-  
-  const row2: Ref<NodeList | null> = ref(null);
-
-  const row3: Ref<NodeList | null> = ref(null);
+  // refs
+  const keyRow1: Ref<NodeList | null> = ref(null);
+  const keyRow2: Ref<NodeList | null> = ref(null);
+  const keyRow3: Ref<NodeList | null> = ref(null);
 
   // @ts-ignore
   const synth = new Tone.PolySynth({
@@ -350,6 +348,12 @@ import { mapRange } from '../utils';
     );
   };
 
+  const addActiveKeyClasses = (key: string) => {
+    const keyElement = state.keys.find(item => item.classList.contains(`key-${key}`));
+    keyElement?.classList.add(`active`);
+    keyElement?.classList.add(`active-${state.activeKeys.length}`);
+  };
+
   const handleKeyPress = (event: KeyboardEvent) => {
     if(!validKeys.includes(event.key)) return;
     handleInput(event.key);
@@ -361,28 +365,24 @@ import { mapRange } from '../utils';
     handleInput(key);
   };
 
+  const isInputInvalid = (key: string) => {
+    return (store.currentView !== 'synth' || state.activeKeys.includes(key) || polyPhonyLimitReached.value);
+  };
+
   const handleInput = (key: string) => {
-    // validate key input
-    if(store.currentView !== 'synth') return;
-    if(state.activeKeys.includes(key) || polyPhonyLimitReached.value) return;
+    if(isInputInvalid(key)) return;
 
     state.activeKeys.push(key);
 
-    // add active classes to clicked/pressed keys
-    const keyElement = state.keys.find(item => item.classList.contains(`key-${key}`));
-    keyElement?.classList.add(`active`);
-    keyElement?.classList.add(`active-${state.activeKeys.length}`);
-    
-    // play single note
+    addActiveKeyClasses(key);
+
     synth.triggerAttackRelease(notes[store.settings.synth.notes][key].name, 0.35);
 
-    if(state.activeKeys.length === state.synthOptions.polyphony) {
-
-      const generatedColor = `rgb(${colorRValue.value}, ${colorGValue.value}, ${colorBValue.value})`;
-
+    if(polyPhonyLimitReached.value) {
       setTimeout(() => {
         playChord();
-
+        
+        const generatedColor = `rgb(${colorRValue.value}, ${colorGValue.value}, ${colorBValue.value})`;
         emit('colorSeedGenerated', generatedColor);
       }, 1250);
 
@@ -409,11 +409,11 @@ import { mapRange } from '../utils';
 
     state.keys =[
       // @ts-ignore
-      ...row1.value?.querySelectorAll('.key'),
+      ...keyRow1.value?.querySelectorAll('.key'),
       // @ts-ignore
-      ...row2.value?.querySelectorAll('.key'),
+      ...keyRow2.value?.querySelectorAll('.key'),
       // @ts-ignore
-      ...row3.value?.querySelectorAll('.key')
+      ...keyRow3.value?.querySelectorAll('.key')
     ];
     
   }),
@@ -429,7 +429,7 @@ import { mapRange } from '../utils';
       <div class="active-key" :data-number="colorGValue">{{ notes[store.settings.synth.notes][state.activeKeys[1]] && notes[store.settings.synth.notes][state.activeKeys[1]].name }}</div>
       <div class="active-key" :data-number="colorBValue">{{ notes[store.settings.synth.notes][state.activeKeys[2]] && notes[store.settings.synth.notes][state.activeKeys[2]].name }}</div>
     </div>
-    <div ref="row1" class="row">
+    <div ref="keyRow1" class="row">
       <div class="key key-q" @click="(event) => handleKeyClick(event)">Q</div>
       <div class="key key-w" @click="(event) => handleKeyClick(event)">W</div>
       <div class="key key-e" @click="(event) => handleKeyClick(event)">E</div>
@@ -441,7 +441,7 @@ import { mapRange } from '../utils';
       <div class="key key-o" @click="(event) => handleKeyClick(event)">O</div>
       <div class="key key-p" @click="(event) => handleKeyClick(event)">P</div>
     </div>
-    <div ref="row2" class="row">
+    <div ref="keyRow2" class="row">
       <div class="key key-a" @click="(event) => handleKeyClick(event)">A</div>
       <div class="key key-s" @click="(event) => handleKeyClick(event)">S</div>
       <div class="key key-d" @click="(event) => handleKeyClick(event)">D</div>
@@ -452,7 +452,7 @@ import { mapRange } from '../utils';
       <div class="key key-k" @click="(event) => handleKeyClick(event)">K</div>
       <div class="key key-l" @click="(event) => handleKeyClick(event)">L</div>
     </div>
-    <div ref="row3" class="row">
+    <div ref="keyRow3" class="row">
       <div class="key key-y" @click="(event) => handleKeyClick(event)">Y</div>
       <div class="key key-x" @click="(event) => handleKeyClick(event)">X</div>
       <div class="key key-c" @click="(event) => handleKeyClick(event)">C</div>
